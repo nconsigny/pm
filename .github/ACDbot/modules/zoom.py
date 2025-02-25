@@ -36,7 +36,7 @@ def create_meeting(topic, start_time, duration):
             "meeting_authentication": False,
             "auto_recording": "cloud",  
             "approval_type": 2,  
-            #"alternative_hosts": alternative_hosts,  
+            "alternative_hosts": alternative_hosts,  
             "recording": {
                 "auto_recording": "cloud",
                 "cloud_recording_download": True,
