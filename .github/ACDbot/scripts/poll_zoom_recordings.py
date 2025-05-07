@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import pytz
 from modules import zoom, transcript, youtube_utils, rss_utils, discourse
 from github import Github, InputGitAuthor
+from modules import recording_utils
 
 MAPPING_FILE = ".github/ACDbot/meeting_topic_mapping.json"
 
@@ -217,6 +218,9 @@ def process_single_occurrence(recording, occurrence, occurrence_index, series_en
     mapping_updated = False
     recording_meeting_id = str(series_entry.get("meeting_id")) # Should be the same as recording.get("id")
     occurrence_issue_number = occurrence.get("issue_number")
+    meeting_title = recording.get("topic", occurrence.get("issue_title", "Unknown Meeting"))
+    call_series = series_entry.get("call_series")
+    
     # Get the UUID of the specific meeting instance from the recording data
     meeting_instance_uuid = recording.get("uuid")
     if not meeting_instance_uuid:
@@ -226,6 +230,23 @@ def process_single_occurrence(recording, occurrence, occurrence_index, series_en
         pass # Allow proceeding, summary fetch will be skipped later
 
     print(f"Processing transcript for Meeting ID {recording_meeting_id}, Occurrence Issue #{occurrence_issue_number}")
+    print(f"Meeting Title: {meeting_title}, Call Series: {call_series}")
+    
+    # Extract call number from meeting title if not already present
+    call_number = occurrence.get("call_number")
+    if not call_number:
+        # Try to extract call number from title
+        try:
+            call_number = recording_utils.extract_call_number(meeting_title, call_series)
+            if call_number:
+                print(f"  -> Extracted call number {call_number} from meeting title")
+                # Add call_number to occurrence data if found
+                mapping[recording_meeting_id]["occurrences"][occurrence_index]["call_number"] = call_number
+                mapping_updated = True
+            else:
+                print(f"  -> Could not extract call number from meeting title")
+        except Exception as e:
+            print(f"  -> Error extracting call number: {e}")
 
     # Check eligibility (meeting ended > 15 mins ago)
     try:
@@ -236,7 +257,203 @@ def process_single_occurrence(recording, occurrence, occurrence_index, series_en
     except Exception as e:
          print(f"[WARN] Could not parse recording end time, proceeding cautiously: {e}")
 
-    # --- Transcript Posting Logic ---
+    # --- Recording Download and Processing Logic ---
+    # Check if we've already downloaded and processed the recordings
+    recording_processed = occurrence.get("recording_files_processed", False)
+    download_attempt_count = occurrence.get("download_attempt_count", 0)
+    
+    # Allow processing if not already done and attempts < 10, or forced
+    can_process_recordings = (not recording_processed and 
+                             (force_process or download_attempt_count < 10))
+    
+    if can_process_recordings:
+        attempt_number = download_attempt_count + 1
+        print(f"  -> Attempting to download and process recording files (Attempt {attempt_number})...")
+        
+        try:
+            # Download recording files (video, audio, transcript, chat)
+            download_dir = f"recordings/{recording_meeting_id}_{occurrence_issue_number}"
+            recording_files = zoom.download_recording_files(
+                meeting_id=meeting_instance_uuid,  # Use the specific instance UUID
+                download_dir=download_dir
+            )
+            
+            if not recording_files or not recording_files.get("files"):
+                print(f"  -> No recording files found or download failed.")
+                # Increment attempt counter only if not forced
+                if not force_process:
+                    mapping[recording_meeting_id]["occurrences"][occurrence_index]["download_attempt_count"] = attempt_number
+                mapping_updated = True
+                return mapping_updated
+            
+            # Process and improve downloaded files
+            processed_files = []
+            github_urls = {}
+            
+            for file_data in recording_files["files"]:
+                file_path = file_data["path"]
+                file_type = file_data["type"].upper()
+                
+                # Process transcript files (.vtt)
+                if file_type == "TRANSCRIPT":
+                    print(f"  -> Processing transcript file: {file_path}")
+                    improved_transcript_path = recording_utils.improve_transcript(file_path)
+                    if improved_transcript_path:
+                        processed_files.append(improved_transcript_path)
+                
+                # Process chat log files (.txt)
+                elif file_type == "CHAT":
+                    print(f"  -> Processing chat log file: {file_path}")
+                    formatted_chat_path = recording_utils.format_chat_log(file_path)
+                    if formatted_chat_path:
+                        processed_files.append(formatted_chat_path)
+                
+                # Add original files to processed files list (except large video files)
+                if file_type not in ["MP4", "M4A"]:  # Skip large audio/video files
+                    processed_files.append(file_path)
+            
+            # Commit processed files to GitHub
+            if processed_files:
+                print(f"  -> Committing {len(processed_files)} files to GitHub...")
+                
+                # Get repository details
+                g = Github(os.environ["GITHUB_TOKEN"])
+                repo_name = os.environ.get("GITHUB_REPOSITORY", "ethereum/pm")
+                repo = g.get_repo(repo_name)
+                branch = "main"  # or get from environment
+                
+                # Use meeting details to create a meaningful commit message
+                meeting_title = recording.get("topic", f"Meeting {recording_meeting_id}")
+                meeting_date = recording.get("start_time", "").split("T")[0]
+                commit_message = f"Add recording files for {meeting_title} ({meeting_date})"
+                
+                # Prepare metadata with call number
+                metadata = {
+                    "call_number": call_number,
+                    "issue_title": occurrence.get("issue_title"),
+                    "issue_number": occurrence_issue_number
+                }
+                
+                try:
+                    # Commit files to GitHub with meeting series and call number info
+                    github_result = recording_utils.commit_to_github(
+                        repo=repo,
+                        branch=branch,
+                        files=processed_files,
+                        commit_message=commit_message,
+                        meeting_id=recording_meeting_id,
+                        meeting_title=meeting_title,
+                        call_series=call_series,
+                        metadata=metadata
+                    )
+                    
+                    if github_result:
+                        github_urls = github_result.get("github_urls", {})
+                        
+                        # Update call_number in mapping if it was successfully extracted
+                        if github_result.get("call_number") and (not call_number or github_result.get("call_number") != call_number):
+                            call_number = github_result.get("call_number")
+                            mapping[recording_meeting_id]["occurrences"][occurrence_index]["call_number"] = call_number
+                            print(f"  -> Updated call number to {call_number} based on file analysis")
+                            mapping_updated = True
+                        
+                        print(f"  -> Successfully committed files to GitHub: {list(github_urls.keys())}")
+                        
+                        # Store GitHub URLs in mapping
+                        mapping[recording_meeting_id]["occurrences"][occurrence_index]["github_recording_files"] = github_urls
+                        mapping[recording_meeting_id]["occurrences"][occurrence_index]["recording_files_processed"] = True
+                        mapping[recording_meeting_id]["occurrences"][occurrence_index]["download_attempt_count"] = 0  # Reset attempts
+                        mapping_updated = True
+                        
+                        # Add links to Discourse post if topic ID exists
+                        discourse_topic_id = occurrence.get("discourse_topic_id")
+                        if discourse_topic_id and not str(discourse_topic_id).startswith("placeholder"):
+                            print(f"  -> Adding GitHub file links to Discourse topic {discourse_topic_id}")
+                            
+                            # Determine meeting series for better formatting
+                            meeting_series = github_result.get("meeting_series")
+                            series_name = "All Core Devs"
+                            if meeting_series == "ACDE":
+                                series_name = "All Core Devs - Execution Layer"
+                            elif meeting_series == "ACDC":
+                                series_name = "All Core Devs - Consensus Layer"
+                            elif meeting_series == "ACDT":
+                                series_name = "All Core Devs - Testing"
+                            
+                            # Create content for Discourse post
+                            post_content = f"### {series_name} Recording Files"
+                            if call_number:
+                                post_content = f"### {series_name} Call #{call_number} Recording Files"
+                            
+                            post_content += "\n\n"
+                            post_content += "The following recording files are available in the Ethereum PM repository:\n\n"
+                            
+                            for file_name, file_url in github_urls.items():
+                                # Create more readable names for the links
+                                display_name = file_name
+                                if "transcript" in file_name.lower() and "_improved.md" in file_name:
+                                    display_name = "Improved Transcript"
+                                elif "chat" in file_name.lower() and "_threaded.md" in file_name:
+                                    display_name = "Threaded Chat Log"
+                                elif "transcript" in file_name.lower():
+                                    display_name = "Original Transcript"
+                                elif "chat" in file_name.lower():
+                                    display_name = "Original Chat Log"
+                                    
+                                post_content += f"- [{display_name}]({file_url})\n"
+                            
+                            try:
+                                discourse.create_post(
+                                    topic_id=discourse_topic_id,
+                                    body=post_content
+                                )
+                                print(f"  -> Successfully posted GitHub links to Discourse topic {discourse_topic_id}")
+                                
+                                # Update RSS feed with GitHub links info
+                                try:
+                                    rss_utils.add_notification_to_meeting(
+                                        recording_meeting_id,
+                                        occurrence_issue_number,
+                                        "github_files_posted",
+                                        f"{series_name} Call #{call_number} recording files posted to GitHub" if call_number else "Meeting recording files posted to GitHub",
+                                        next(iter(github_urls.values())) if github_urls else None
+                                    )
+                                    print(f"  -> Updated RSS feed with GitHub file links info")
+                                except Exception as e:
+                                    print(f"[ERROR] Failed to update RSS feed with GitHub links: {e}")
+                                
+                            except Exception as e:
+                                print(f"[ERROR] Error adding GitHub links to Discourse: {e}")
+                    else:
+                        print(f"  -> Failed to commit files to GitHub: No URLs returned")
+                        # Increment attempt counter only if not forced
+                        if not force_process:
+                            mapping[recording_meeting_id]["occurrences"][occurrence_index]["download_attempt_count"] = attempt_number
+                        mapping_updated = True
+                except Exception as e:
+                    print(f"[ERROR] Error committing files to GitHub: {e}")
+                    # Increment attempt counter only if not forced
+                    if not force_process:
+                        mapping[recording_meeting_id]["occurrences"][occurrence_index]["download_attempt_count"] = attempt_number
+                    mapping_updated = True
+            else:
+                print(f"  -> No files to commit to GitHub")
+                # Still mark as processed if we got this far but no files to commit
+                mapping[recording_meeting_id]["occurrences"][occurrence_index]["recording_files_processed"] = True
+                mapping_updated = True
+        
+        except Exception as e:
+            print(f"[ERROR] Error processing recording files: {e}")
+            # Increment attempt counter only if not forced
+            if not force_process:
+                mapping[recording_meeting_id]["occurrences"][occurrence_index]["download_attempt_count"] = attempt_number
+            mapping_updated = True
+    elif recording_processed:
+        print(f"  -> Recording files already processed.")
+    elif download_attempt_count >= 10 and not force_process:
+        print(f"  -> Skipping recording processing: Max attempts reached.")
+    
+    # --- Transcript Posting Logic (EXISTING) ---
     transcript_processed = occurrence.get("transcript_processed", False)
     transcript_attempts = occurrence.get("transcript_attempt_count", 0)
     discourse_topic_id = occurrence.get("discourse_topic_id")
@@ -293,9 +510,7 @@ def process_single_occurrence(recording, occurrence, occurrence_index, series_en
     elif not discourse_topic_id:
          print(f"  -> Skipping transcript posting: No Discourse topic ID found for occurrence.")
 
-
-    # --- Post YouTube stream links to Discourse (if needed) ---
-    # This logic remains as it posts *existing* links, not uploading videos.
+    # --- Post YouTube stream links to Discourse (EXISTING LOGIC) ---
     streams_posted = occurrence.get("youtube_streams_posted_to_discourse", False)
     occurrence_youtube_streams = occurrence.get("youtube_streams")
     can_post_streams = discourse_topic_id and not streams_posted and occurrence_youtube_streams

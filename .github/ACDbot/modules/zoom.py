@@ -668,3 +668,94 @@ def check_and_fix_recurrence_pattern(meeting_id, expected_pattern, response_data
         return None
     
     return None
+
+def download_recording_files(meeting_id, download_dir=None):
+    """
+    Downloads all recording files (video, audio, transcript, chat) for a meeting
+    and saves them to the specified directory or a default location.
+    
+    Args:
+        meeting_id: The meeting ID or UUID
+        download_dir: Directory to save files (defaults to 'recordings/{meeting_id}')
+    
+    Returns:
+        Dictionary with file paths and metadata for all downloaded files
+    """
+    # Get recording metadata first
+    recording_data = get_meeting_recording(meeting_id)
+    if not recording_data:
+        print(f"No recording data found for meeting {meeting_id}")
+        return None
+        
+    # Create download directory if not specified
+    if not download_dir:
+        download_dir = f"recordings/{meeting_id}"
+    
+    os.makedirs(download_dir, exist_ok=True)
+    
+    # Initialize results dictionary
+    downloaded_files = {
+        "meeting_topic": recording_data.get("topic", "Unknown Meeting"),
+        "start_time": recording_data.get("start_time", ""),
+        "duration": recording_data.get("duration", 0),
+        "files": []
+    }
+    
+    # Get access token for downloading
+    access_token = get_access_token()
+    
+    # Download each recording file
+    for file_data in recording_data.get("recording_files", []):
+        file_type = file_data.get("file_type", "").lower()
+        download_url = file_data.get("download_url")
+        
+        if not download_url:
+            print(f"No download URL for {file_type} file")
+            continue
+            
+        # Generate filename based on meeting ID and file type
+        timestamp = datetime.now().strftime("%Y%m%d")
+        extension = get_file_extension(file_type)
+        filename = f"{meeting_id}_{file_type.lower()}_{timestamp}{extension}"
+        filepath = os.path.join(download_dir, filename)
+        
+        # Download the file
+        try:
+            print(f"Downloading {file_type} file to {filepath}")
+            response = requests.get(
+                download_url, 
+                headers={"Authorization": f"Bearer {access_token}"},
+                stream=True  # Stream for large files
+            )
+            response.raise_for_status()
+            
+            with open(filepath, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                    
+            # Add to results
+            downloaded_files["files"].append({
+                "type": file_type,
+                "path": filepath,
+                "size_bytes": os.path.getsize(filepath),
+                "file_id": file_data.get("id", "")
+            })
+            print(f"Successfully downloaded {file_type} file: {filepath}")
+            
+        except Exception as e:
+            print(f"Error downloading {file_type} file: {str(e)}")
+    
+    return downloaded_files
+
+def get_file_extension(file_type):
+    """Returns the appropriate file extension based on Zoom file type"""
+    file_type = file_type.upper()
+    extensions = {
+        "MP4": ".mp4",
+        "M4A": ".m4a",
+        "TRANSCRIPT": ".vtt",
+        "CHAT": ".txt",
+        "CC": ".vtt",
+        "TIMELINE": ".json"
+    }
+    return extensions.get(file_type, ".txt")

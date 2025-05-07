@@ -10,6 +10,11 @@ ACDbot (AllCoreDevs Bot) is a suite of Python scripts and GitHub Actions workflo
 -   **YouTube Integration:**
     -   Optionally creates YouTube live stream events for recurring meetings (up to 4 future occurrences).
     -   Automatically uploads meeting recordings to YouTube for one-time meetings or recurring meetings where live streaming wasn't requested.
+-   **Recording Processing:** 
+    -   Downloads Zoom meeting recordings (transcripts, chat logs) and saves them to the repository.
+    -   Improves transcripts by fixing common technical terms and formatting.
+    -   Formats chat logs into a threaded format for better readability.
+    -   Commits processed files to the GitHub repository and links them in Discourse.
 -   **Transcript Processing:** Polls Zoom for meeting transcripts, downloads them when available, and posts them to the corresponding Discourse topic.
 -   **Notifications:** Sends Zoom join links to the designated facilitator via email. Posts updates (YouTube links, transcript links) to Discourse and Telegram.
 -   **State Management:** Uses a `meeting_topic_mapping.json` file to track the relationship between GitHub issues, Zoom meetings, Discourse topics, Google Calendar events, and YouTube videos/streams.
@@ -57,6 +62,15 @@ The primary workflow is triggered by GitHub issues:
     *   **Comments on Issue:** Posts a summary comment on the GitHub issue with links to the Discourse topic, Google Calendar event, Zoom details, and YouTube streams (if created).
     *   **Commits Mapping:** Commits the updated `meeting_topic_mapping.json` back to the repository.
 4.  **Post-Meeting Workflows:**
+    *   **Recording Processing (`zoom-transcript-poll.yml`, `poll_zoom_recordings.py`):**
+        *   Periodically polls the Zoom API for completed recordings.
+        *   Downloads the recording files (transcripts, chat logs) from Zoom.
+        *   Processes transcripts to improve technical term recognition and format.
+        *   Formats chat logs into a threaded conversation view.
+        *   Commits the processed files to the GitHub repository.
+        *   Posts links to the files in the corresponding Discourse topic.
+        *   Updates the mapping file with GitHub URLs to the files.
+        *   Updates the RSS feed with information about the recordings.
     *   **YouTube Upload (`youtube-uploader.yml`, `upload_zoom_recording.py`):**
         *   Periodically checks the mapping file for meetings that have finished.
         *   For meetings where `skip_youtube_upload` is `false`, it downloads the MP4 recording from Zoom.
@@ -66,11 +80,10 @@ The primary workflow is triggered by GitHub issues:
         *   Updates the RSS feed.
         *   Commits the mapping file.
     *   **Transcript Polling (`zoom-transcript-poll.yml`, `poll_zoom_recordings.py`):**
-        *   Periodically polls the Zoom API for completed recordings and available transcripts for recent meetings listed in the mapping file.
         *   If a transcript (`.vtt`) is found and not already processed (`transcript_processed` is false):
             *   Downloads the transcript.
             *   Posts the transcript content to the Discourse topic.
-            *   Posts a sumarry of the transcript provided by Zoom llm feature (Future enhancement: Could generate a better LLM summary here).
+            *   Posts a summary of the transcript provided by Zoom LLM feature.
             *   Updates the mapping file, setting `transcript_processed` to true.
             *   Updates the RSS feed.
             *   Commits the mapping file.
@@ -105,7 +118,7 @@ The workflows require the following secrets to be set in the `ethereum/pm` repos
 -   **Scripts (`.github/ACDbot/scripts/`):**
     -   `handle_issue.py`: Main script for processing GitHub issues.
     -   `upload_zoom_recording.py`: Handles downloading recordings and uploading to YouTube.
-    -   `poll_zoom_recordings.py`: Polls Zoom for recordings and transcripts.
+    -   `poll_zoom_recordings.py`: Polls Zoom for recordings and transcripts, downloads files, and processes them.
     -   `serve_rss.py`: Generates the RSS feed.
     -   `get_zoom_token.py`, `direct_token_exchange.py`, `get_refresh_token.py`: Utilities for managing Zoom OAuth tokens.
     -   `refresh_youtube_token.py`: Utility for refreshing the YouTube/Google token (often run manually or via a separate workflow).
@@ -118,6 +131,7 @@ The workflows require the following secrets to be set in the `ethereum/pm` repos
     *   `tg.py`: Sending Telegram messages.
     *   `rss_utils.py`: Generating RSS feed data.
     *   `transcript.py`: Transcript processing utilities.
+    *   `recording_utils.py`: Utilities for improving transcripts and formatting chat logs.
 
 ## Troubleshooting
 

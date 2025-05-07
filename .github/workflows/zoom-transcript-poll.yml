@@ -32,7 +32,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -e .github/ACDbot/
-          pip install pytz google-api-python-client
+          pip install pytz google-api-python-client webvtt-py
           pip install -r .github/ACDbot/requirements.txt
 
       - name: Poll Zoom for recordings

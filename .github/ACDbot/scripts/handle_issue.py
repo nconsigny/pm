@@ -169,6 +169,71 @@ def extract_display_zoom_link(issue_body):
     print(f"[DEBUG] Extracted display_zoom_link_in_invite: {display_link}")
     return display_link
 
+def extract_call_number(issue_title, call_series=None):
+    """
+    Extract the call number from an issue title.
+    Uses recording_utils' implementation if available, otherwise falls back to a simpler version.
+    
+    Args:
+        issue_title: Title of the issue/meeting
+        call_series: Call series name if known (e.g., 'acde', 'acdc', 'all core devs - testing')
+    
+    Returns:
+        Call number as integer if found, None otherwise
+    """
+    try:
+        # Try to import recording_utils
+        from modules import recording_utils
+        return recording_utils.extract_call_number(issue_title, call_series)
+    except (ImportError, AttributeError):
+        # Fall back to simpler implementation
+        if not issue_title:
+            return None
+            
+        # Pattern: "Call #X" or "Meeting #X"
+        call_number_match = re.search(r'(?:call|meeting)\s*#?\s*(\d+)', issue_title, re.IGNORECASE)
+        if call_number_match:
+            try:
+                return int(call_number_match.group(1))
+            except ValueError:
+                pass
+                
+        # Look for numbers after series name
+        if call_series:
+            # Handle different series patterns
+            series_pattern = re.escape(call_series)
+            if "acde" in call_series.lower() or "execution" in call_series.lower():
+                series_pattern = r'(?:ACDE|EL\s+Call)'
+            elif "acdc" in call_series.lower() or "consensus" in call_series.lower():
+                series_pattern = r'(?:ACDC|CL\s+Call)'
+            elif "testing" in call_series.lower():
+                series_pattern = r'(?:Test|Testing)'
+                
+            series_match = re.search(f'{series_pattern}\s*#?\s*(\d+)', issue_title, re.IGNORECASE)
+            if series_match:
+                try:
+                    return int(series_match.group(1))
+                except ValueError:
+                    pass
+                    
+        # Look for Testing indicators with numbers
+        testing_match = re.search(r'(?:Test|Testing)\s*#?\s*(\d+)', issue_title, re.IGNORECASE)
+        if testing_match:
+            try:
+                return int(testing_match.group(1))
+            except ValueError:
+                pass
+                    
+        # Last resort: Look for any number
+        number_match = re.search(r'\b(\d+)\b', issue_title)
+        if number_match:
+            try:
+                return int(number_match.group(1))
+            except ValueError:
+                pass
+                
+        return None
+
 def handle_github_issue(issue_number: int, repo_name: str):
     """
     Fetches the specified GitHub issue, extracts its title and body,
@@ -931,6 +996,17 @@ def handle_github_issue(issue_number: int, repo_name: str):
                 if isinstance(stream, dict) and stream.get("stream_url")
             ] if current_occurrence_streams else None
         }
+
+        # Extract and store call number from issue title
+        call_number = extract_call_number(issue.title, call_series)
+        if call_number:
+            occurrence_data["call_number"] = call_number
+            print(f"[DEBUG] Extracted call number {call_number} from issue title '{issue.title}'")
+            # Add call number to the comment
+            if call_series:
+                comment_lines.append(f"\n**Call Number:** {call_number} ({call_series})")
+            else:
+                comment_lines.append(f"\n**Call Number:** {call_number}")
 
         # Find if an occurrence for this issue number already exists
         existing_occurrence_index = next((i for i, occ in enumerate(mapping_entry["occurrences"]) if occ.get("issue_number") == issue.number), -1)
