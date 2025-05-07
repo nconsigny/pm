@@ -27,7 +27,8 @@
         ],
         "github_recording_files": {},
         "recording_files_processed": true,
-        "download_attempt_count": 0
+        "download_attempt_count": 0,
+        "call_number": 210
       },
       {
         "occurrence_number": 2,
@@ -48,7 +49,8 @@
             "stream_url": "https://youtube.com/watch?v=Y7j8FdRkSrA",
             "scheduled_time": "2025-05-08T14:00:00.000Z"
           }
-        ]
+        ],
+        "call_number": 211
       }
     ],
     "zoom_link": "Link not found in mapping",
@@ -74,7 +76,8 @@
         "upload_attempt_count": 0,
         "transcript_attempt_count": 0,
         "telegram_message_id": 81,
-        "youtube_streams_posted_to_discourse": false
+        "youtube_streams_posted_to_discourse": false,
+        "call_number": 155
       },
       {
         "occurrence_number": 2,
@@ -95,7 +98,8 @@
             "stream_url": "https://youtube.com/live/NQhTiMFDZHQ?feature=share",
             "scheduled_time": "2025-05-01T14:00:00.000Z"
           }
-        ]
+        ],
+        "call_number": 156
       },
       {
         "occurrence_number": 3,
@@ -116,7 +120,8 @@
             "stream_url": "https://youtube.com/watch?v=Bn4jGMnub9g",
             "scheduled_time": "2025-05-15T14:00:00.000Z"
           }
-        ]
+        ],
+        "call_number": 157
       }
     ],
     "zoom_link": "Zoom link missing in reused series data"
@@ -223,7 +228,8 @@
         "transcript_attempt_count": 0,
         "telegram_message_id": 124,
         "youtube_streams_posted_to_discourse": false,
-        "youtube_streams": null
+        "youtube_streams": null,
+        "call_number": 5
       }
     ],
     "calendar_event_id": "rduev160uk9o7gqehn4hu2ak1k"
@@ -278,7 +284,8 @@
         "transcript_attempt_count": 0,
         "telegram_message_id": 126,
         "youtube_streams_posted_to_discourse": false,
-        "youtube_streams": null
+        "youtube_streams": null,
+        "call_number": 1
       }
     ],
     "calendar_event_id": "heb3frmm6e6auec2udh1jfod74"
@@ -349,7 +356,8 @@
         "transcript_attempt_count": 0,
         "telegram_message_id": 99,
         "youtube_streams_posted_to_discourse": false,
-        "youtube_streams": null
+        "youtube_streams": null,
+        "call_number": 26
       },
       {
         "occurrence_number": 2,
@@ -366,7 +374,8 @@
         "telegram_message_id": 115,
         "youtube_streams_posted_to_discourse": false,
         "youtube_streams": null,
-        "youtube_video_id": "OLv7WV1LKCw"
+        "youtube_video_id": "OLv7WV1LKCw",
+        "call_number": 28
       }
     ]
   },
@@ -433,7 +442,8 @@
         "transcript_attempt_count": 7,
         "telegram_message_id": 74,
         "youtube_streams": null,
-        "youtube_streams_posted_to_discourse": false
+        "youtube_streams_posted_to_discourse": false,
+        "call_number": 70
       }
     ]
   },
@@ -457,7 +467,8 @@
         "transcript_attempt_count": 0,
         "telegram_message_id": 79,
         "youtube_streams": null,
-        "youtube_streams_posted_to_discourse": false
+        "youtube_streams_posted_to_discourse": false,
+        "call_number": 72
       }
     ]
   },
@@ -479,7 +490,8 @@
         "Youtube_upload_processed": false,
         "transcript_processed": false,
         "upload_attempt_count": 0,
-        "transcript_attempt_count": 0
+        "transcript_attempt_count": 0,
+        "call_number": 14
       }
     ]
   },
@@ -521,7 +533,8 @@
             "scheduled_time": "2025-05-05T14:00:00.000Z"
           }
         ],
-        "youtube_streams_posted_to_discourse": false
+        "youtube_streams_posted_to_discourse": false,
+        "call_number": 33
       },
       {
         "occurrence_number": 2,
@@ -542,7 +555,8 @@
             "stream_url": "https://youtube.com/watch?v=GcA-sVRSCHc",
             "scheduled_time": "2025-04-28T14:00:00.000Z"
           }
-        ]
+        ],
+        "call_number": 34
       },
       {
         "occurrence_number": 3,
@@ -564,7 +578,8 @@
             "scheduled_time": "2025-05-05T14:00:00.000Z"
           }
         ],
-        "download_attempt_count": 1
+        "download_attempt_count": 1,
+        "call_number": 35
       },
       {
         "occurrence_number": 4,
@@ -586,7 +601,8 @@
             "stream_url": "https://youtube.com/watch?v=Lzpb1czKWR8",
             "scheduled_time": "2025-05-12T14:00:00.000Z"
           }
-        ]
+        ],
+        "call_number": 36
       }
     ]
   },
@@ -616,7 +632,8 @@
             "stream_url": "https://youtube.com/watch?v=rLpvd0c0y1E",
             "scheduled_time": "2025-05-14T14:00:00.000Z"
           }
-        ]
+        ],
+        "call_number": 12
       }
     ]
   },
@@ -667,7 +684,8 @@
         "transcript_attempt_count": 0,
         "telegram_message_id": 94,
         "youtube_streams": null,
-        "youtube_streams_posted_to_discourse": false
+        "youtube_streams_posted_to_discourse": false,
+        "call_number": 33
       }
     ],
     "calendar_event_id": "fvgs0f39qo8q1l5t607mvqvcls"
@@ -692,7 +710,8 @@
         "transcript_attempt_count": 0,
         "telegram_message_id": null,
         "youtube_streams": null,
-        "youtube_streams_posted_to_discourse": false
+        "youtube_streams_posted_to_discourse": false,
+        "call_number": 116
       }
     ]
   },
@@ -745,7 +764,8 @@
         ],
         "github_recording_files": {},
         "recording_files_processed": true,
-        "download_attempt_count": 0
+        "download_attempt_count": 0,
+        "call_number": 48
       }
     ],
     "calendar_event_id": "fr7hvk1ilghqb42m063afrpdgo",
@@ -797,7 +817,8 @@
         "transcript_attempt_count": 0,
         "telegram_message_id": 117,
         "youtube_streams_posted_to_discourse": false,
-        "youtube_streams": null
+        "youtube_streams": null,
+        "call_number": 48
       }
     ],
     "meeting_id": "placeholder-1518",
@@ -827,7 +848,8 @@
             "stream_url": "https://youtube.com/watch?v=mSHo8gQ97v4",
             "scheduled_time": "2025-05-06T14:00:00.000Z"
           }
-        ]
+        ],
+        "call_number": 10
       }
     ],
     "meeting_id": "placeholder-FOCIL",
@@ -851,7 +873,8 @@
         "transcript_attempt_count": 0,
         "telegram_message_id": 135,
         "youtube_streams_posted_to_discourse": false,
-        "youtube_streams": null
+        "youtube_streams": null,
+        "call_number": 54
       },
       {
         "occurrence_number": 2,
@@ -867,7 +890,8 @@
         "transcript_attempt_count": 0,
         "telegram_message_id": 138,
         "youtube_streams_posted_to_discourse": false,
-        "youtube_streams": null
+        "youtube_streams": null,
+        "call_number": 55
       }
     ],
     "meeting_id": "placeholder-Portal",

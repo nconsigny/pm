@@ -716,7 +716,10 @@ def download_recording_files(meeting_id, download_dir=None):
         # Generate filename based on meeting ID and file type
         timestamp = datetime.now().strftime("%Y%m%d")
         extension = get_file_extension(file_type)
-        filename = f"{meeting_id}_{file_type.lower()}_{timestamp}{extension}"
+        
+        # Sanitize the meeting_id by replacing slashes with underscores to avoid path issues
+        safe_meeting_id = str(meeting_id).replace("/", "_").replace("\\", "_")
+        filename = f"{safe_meeting_id}_{file_type.lower()}_{timestamp}{extension}"
         filepath = os.path.join(download_dir, filename)
         
         # Download the file

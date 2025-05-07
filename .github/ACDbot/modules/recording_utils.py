@@ -482,9 +482,26 @@ def extract_call_number(meeting_title, meeting_series=None):
     if not meeting_title:
         return None
         
+    # Function to check if a number is part of a date
+    def is_part_of_date(title, num_str):
+        date_patterns = [
+            r'\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',  # 21 April
+            r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}',    # April 21
+            r'\d{1,2}[-/\.]\d{1,2}[-/\.]\d{2,4}',                               # 04/21/2025
+            r'\d{4}[-/\.]\d{1,2}[-/\.]\d{1,2}'                                  # 2025-04-21
+        ]
+        
+        for pattern in date_patterns:
+            for match in re.finditer(pattern, title, re.IGNORECASE):
+                if num_str in match.group(0).split():
+                    return True
+                if num_str in match.group(0).replace('-', ' ').replace('/', ' ').replace('.', ' ').split():
+                    return True
+        return False
+        
     # Try different patterns to extract call number
     
-    # Pattern: "Call #X" or "Meeting #X"
+    # Pattern: "Call #X" or "Meeting #X" - most explicit and reliable
     call_number_match = re.search(r'(?:call|meeting)\s*#?\s*(\d+)', meeting_title, re.IGNORECASE)
     if call_number_match:
         try:
@@ -526,12 +543,32 @@ def extract_call_number(meeting_title, meeting_series=None):
                 pass
     
     # If we still don't have a number, try to find any number in the title
-    number_match = re.search(r'\b(\d+)\b', meeting_title)
+    # But be careful about extracting dates
+    number_match = re.search(r'\b#(\d+)\b', meeting_title)  # Only match numbers with # prefix
     if number_match:
         try:
             return int(number_match.group(1))
         except ValueError:
             pass
+    
+    # Last resort - any standalone number, but be VERY careful not to match dates
+    number_matches = re.finditer(r'\b(\d+)\b', meeting_title)
+    for match in number_matches:
+        num_str = match.group(1)
+        num = int(num_str)
+        
+        # Skip numbers that are likely to be dates
+        if len(num_str) == 4 and 2020 <= num <= 2100:  # Skip years
+            continue
+        if is_part_of_date(meeting_title, num_str):
+            continue
+            
+        # Skip numbers that are likely to be times
+        time_match = re.search(r'\b\d{1,2}:\d{2}\b', meeting_title)
+        if time_match and num_str in time_match.group(0):
+            continue
+            
+        return num
     
     return None
 

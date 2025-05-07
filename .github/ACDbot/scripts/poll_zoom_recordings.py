@@ -320,7 +320,7 @@ def process_single_occurrence(recording, occurrence, occurrence_index, series_en
                 g = Github(os.environ["GITHUB_TOKEN"])
                 repo_name = os.environ.get("GITHUB_REPOSITORY", "ethereum/pm")
                 repo = g.get_repo(repo_name)
-                branch = "main"  # or get from environment
+                branch = os.environ.get("GITHUB_REF_NAME", "main")  # Get branch from environment with fallback to main
                 
                 # Use meeting details to create a meaningful commit message
                 meeting_title = recording.get("topic", f"Meeting {recording_meeting_id}")
