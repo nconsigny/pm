@@ -18,13 +18,16 @@
         "upload_attempt_count": 0,
         "transcript_attempt_count": 1,
         "telegram_message_id": 102,
-        "youtube_streams_posted_to_discourse": false,
+        "youtube_streams_posted_to_discourse": true,
         "youtube_streams": [
           {
             "stream_url": "https://youtube.com/watch?v=uXgmz4oqz5w",
             "scheduled_time": "2025-04-24T14:00:00.000Z"
           }
-        ]
+        ],
+        "github_recording_files": {},
+        "recording_files_processed": true,
+        "download_attempt_count": 0
       },
       {
         "occurrence_number": 2,
@@ -560,7 +563,8 @@
             "stream_url": "https://youtube.com/watch?v=YvlLhvICtbc",
             "scheduled_time": "2025-05-05T14:00:00.000Z"
           }
-        ]
+        ],
+        "download_attempt_count": 1
       },
       {
         "occurrence_number": 4,
@@ -635,7 +639,11 @@
         "transcript_attempt_count": 10,
         "telegram_message_id": 92,
         "youtube_streams": null,
-        "youtube_streams_posted_to_discourse": false
+        "youtube_streams_posted_to_discourse": false,
+        "call_number": 32,
+        "github_recording_files": {},
+        "recording_files_processed": true,
+        "download_attempt_count": 0
       }
     ],
     "calendar_event_id": "3pjjv7242lq840jo942or55bpk"
@@ -734,7 +742,10 @@
             "timestamp": "2025-05-05T12:26:13.136781+00:00",
             "url": "https://youtu.be/dotZwMwz_8Q"
           }
-        ]
+        ],
+        "github_recording_files": {},
+        "recording_files_processed": true,
+        "download_attempt_count": 0
       }
     ],
     "calendar_event_id": "fr7hvk1ilghqb42m063afrpdgo",
@@ -762,7 +773,11 @@
         "telegram_message_id": 127,
         "youtube_streams_posted_to_discourse": false,
         "youtube_streams": null,
-        "youtube_video_id": "-3Nkrd4olgk"
+        "youtube_video_id": "-3Nkrd4olgk",
+        "call_number": 4,
+        "github_recording_files": {},
+        "recording_files_processed": true,
+        "download_attempt_count": 0
       }
     ]
   },
