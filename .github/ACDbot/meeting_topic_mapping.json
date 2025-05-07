@@ -578,8 +578,17 @@
             "scheduled_time": "2025-05-05T14:00:00.000Z"
           }
         ],
-        "download_attempt_count": 1,
-        "call_number": 35
+        "download_attempt_count": 0,
+        "call_number": 35,
+        "github_recording_files": {
+          "ayLYhnZ4ScigmIFXjIb_rw==_timeline_20250507.json": "https://github.com/nconsigny/pm/blob/pm-transcript/AllCoreDevs-Testing-meetings/call_035/ayLYhnZ4ScigmIFXjIb_rw==_timeline_20250507.json",
+          "ayLYhnZ4ScigmIFXjIb_rw==_transcript_20250507_improved.md": "https://github.com/nconsigny/pm/blob/pm-transcript/AllCoreDevs-Testing-meetings/call_035/transcript.md",
+          "ayLYhnZ4ScigmIFXjIb_rw==_transcript_20250507.vtt": "https://github.com/nconsigny/pm/blob/pm-transcript/AllCoreDevs-Testing-meetings/call_035/ayLYhnZ4ScigmIFXjIb_rw==_transcript_20250507.vtt",
+          "ayLYhnZ4ScigmIFXjIb_rw==_summary_20250507.txt": "https://github.com/nconsigny/pm/blob/pm-transcript/AllCoreDevs-Testing-meetings/call_035/ayLYhnZ4ScigmIFXjIb_rw==_summary_20250507.txt",
+          "ayLYhnZ4ScigmIFXjIb_rw==_chat_20250507_threaded.md": "https://github.com/nconsigny/pm/blob/pm-transcript/AllCoreDevs-Testing-meetings/call_035/ayLYhnZ4ScigmIFXjIb_rw==_chat_20250507_threaded.md",
+          "ayLYhnZ4ScigmIFXjIb_rw==_chat_20250507.txt": "https://github.com/nconsigny/pm/blob/pm-transcript/AllCoreDevs-Testing-meetings/call_035/ayLYhnZ4ScigmIFXjIb_rw==_chat_20250507.txt"
+        },
+        "recording_files_processed": true
       },
       {
         "occurrence_number": 4,
